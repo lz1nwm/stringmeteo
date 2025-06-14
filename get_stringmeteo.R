@@ -69,6 +69,7 @@ max(dt.all$ddate)
 st <- wb_to_df('./RData/dict.xlsx') |> setDT()
 dates <- seq.Date(as.Date('1999-09-01'), as.Date('2024-10-01'), by = 'month')
 dates <- seq.Date(Sys.Date() %m-% months(1), Sys.Date(), by = 'month')
+dates <- Sys.Date()
 
 list_dt <- list()
 #cty <- st[1,station_id]
