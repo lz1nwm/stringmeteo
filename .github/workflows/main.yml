@@ -38,14 +38,14 @@ jobs:
       - name: Retrieve data
         uses: nick-fields/retry@v3
         with:
-          timeout_seconds: 30
+          timeout_seconds: 360
           max_attempts: 3
           command: Rscript -e 'source("get_stringmeteo.R")'
           continue_on_error: true
-          
+
      
       - name: Commit new data
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Update data
-        timeout-minutes: 4
+        
