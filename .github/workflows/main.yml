@@ -38,7 +38,7 @@ jobs:
       - name: Retrieve data
         uses: nick-fields/retry@v3
         with:
-          timeout_seconds: 360
+          timeout_minutes: 4
           max_attempts: 3
           command: Rscript -e 'source("get_stringmeteo.R")'
           continue_on_error: true
