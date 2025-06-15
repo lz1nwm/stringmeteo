@@ -5,16 +5,16 @@ library(openxlsx2)
 
 load('RData/bg_nimh.RData')
 
-dt.nimh[TEMP_MIN <= -50, TEMP_MIN := NA_real_]
-dt.nimh[TEMP_MAX >= 50, TEMP_MAX := NA_real_]
-
-dt.nimh[, TEMP_CH := TEMP - shift(TEMP,1), by = .(STATION_ID)]
-
-ggplot(dt.nimh[year(ddate)>=2005])+
-    geom_histogram(mapping = aes(x = TEMP_CH), 
-                   binwidth = 0.5, fill = 'orange2', color = 'black')+
-    coord_cartesian(ylim = c(0, 5))+
-    facet_wrap(STATION_ID ~ ., scales = 'free_y')
+# dt.nimh[TEMP_MIN <= -50, TEMP_MIN := NA_real_]
+# dt.nimh[TEMP_MAX >= 50, TEMP_MAX := NA_real_]
+# 
+# dt.nimh[, TEMP_CH := TEMP - shift(TEMP,1), by = .(STATION_ID)]
+# 
+# ggplot(dt.nimh[year(ddate)>=2005])+
+#     geom_histogram(mapping = aes(x = TEMP_CH), 
+#                    binwidth = 0.5, fill = 'orange2', color = 'black')+
+#     coord_cartesian(ylim = c(0, 5))+
+#     facet_wrap(STATION_ID ~ ., scales = 'free_y')
 
 
 dt.nimh.d <- dt.nimh[year(ddate) %in% c(2005:2025), 
