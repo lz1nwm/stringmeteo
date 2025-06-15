@@ -42,11 +42,18 @@ jobs:
         uses: nick-fields/retry@v3
         with:
           timeout_minutes: 4
-          max_attempts: 3
+          max_attempts: 2
           command: Rscript -e 'source("get_stringmeteo.R")'
           continue_on_error: true
+          
+      - name: Daily chart
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 4
+          max_attempts: 1
+          command: Rscript -e 'source("daily_chart.R")'
+          continue_on_error: true
 
-     
       - name: Commit new data
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
