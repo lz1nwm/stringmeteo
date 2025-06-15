@@ -8,9 +8,6 @@ library(lubridate)
 
 add_new_dt <- function(dt.old, dt.new){
     
-    #dt.new <- dt.all.n
-    #dt.old <- dt.all
-    
     # cols w/o data
     cols_on <- c('ddate', 'STATION_ID','STATION_NAME')
     cols_i <- names(dt.old)[ !(names(dt.old) %in% cols_on)]
