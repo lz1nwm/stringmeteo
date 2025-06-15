@@ -1,8 +1,8 @@
 library(rvest)
 library(data.table)
-library(ggplot2)
-library(scales)
-library(openxlsx2)
+#library(ggplot2)
+#library(scales)
+#library(openxlsx2)
 library(stringr)
 library(lubridate)
 
@@ -57,6 +57,7 @@ clean_data <- function(df){
     df[, (cols) := lapply(.SD, as.numeric), .SDcols = cols]
     df[!is.na(RAIN_24)]
     df[, names(df)[names(df) %like% '^X'] := NULL]
+    df <- unique(df)
 }
 
 Sys.setlocale("LC_CTYPE", "Bulgarian.utf8")
@@ -64,12 +65,22 @@ Sys.setlocale("LC_CTYPE", "Bulgarian.utf8")
 base_url <- 'https://www.stringmeteo.com/synop/bg_stday.php?'
 
 load(file = './RData/bg_nimh.RData')
-max(dt.all$ddate)
+load(file = './RData/bg_stations.RData')
+max(dt.nimh$ddate)
 
-st <- wb_to_df('./RData/dict.xlsx') |> setDT()
-dates <- seq.Date(as.Date('1999-09-01'), as.Date('2024-10-01'), by = 'month')
-dates <- seq.Date(Sys.Date() %m-% months(1), Sys.Date(), by = 'month')
-dates <- Sys.Date()
+#st <- wb_to_df('./RData/dict.xlsx') |> setDT()
+#dates <- seq.Date(as.Date('1999-09-01'), as.Date('2025-06-01'), by = 'month')
+
+dt_ini <- lubridate::floor_date(Sys.Date(), unit = 'month')
+dt_ini_1 <- dt_ini %m-% months(1)
+dt_ini_2 <- dt_ini %m-% months(2)
+
+# Update last 2 months if today is 1 of the month
+if(mday(Sys.Date()) != 1){
+    dates <- dt_ini
+}else{
+    dates <- c(dt_ini, dt_ini_1, dt_ini_2)
+}
 
 list_dt <- list()
 #cty <- st[1,station_id]
@@ -77,14 +88,13 @@ list_dt <- list()
 library(cli)
 cli_progress_bar(total = length(dates) * length(st[, station_id]))
 
-
+start.time <- Sys.time()
 for(cty in st[, station_id]){
     for(i in 1:length(dates) ){
-        #cty <- '15614'
-        #i <- dates[1]
-        #print(paste(cty, as.Date(i)))
-        
-        
+        # cty <- '15614'
+        # i <- 1
+        # print(paste(cty, as.Date(i)))
+
         yr <- year(dates[i])
         m <- month(dates[i])
         d <- mday(dates[i])
@@ -112,19 +122,21 @@ for(cty in st[, station_id]){
     }
     #cli_progress_update()
 }
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+time.taken
 
-dt.all.n <- rbindlist(list_dt, use.names = T)
-dt.all.n <- clean_data(dt.all.n)
+dt.nimh.n <- rbindlist(list_dt, use.names = T)
+dt.nimh.n <- clean_data(dt.nimh.n)
 
 load(file = './RData/bg_nimh.RData')
 
-nrow(dt.all)
-max(dt.all$ddate)
+nrow(dt.nimh)
+max(dt.nimh$ddate)
 
-dt.all <- add_new_dt(dt.all, dt.all.n)
+dt.nimh <- add_new_dt(dt.nimh, dt.nimh.n)
 
-nrow(dt.all)
-max(dt.all$ddate)
+nrow(dt.nimh)
+max(dt.nimh$ddate)
 
-
-save(dt.all, file = './RData/bg_nimh.RData')
+save(dt.nimh, file = './RData/bg_nimh.RData')
