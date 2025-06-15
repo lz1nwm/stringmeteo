@@ -59,3 +59,44 @@ ggplot() +
           legend.title = element_blank())
 
 ggsave('figs/nimh_temp_2025.pdf', width = 12, height = 6, device = cairo_pdf)
+
+
+# Weekly
+
+dt.nimh[, ddate2 := ddate] 
+year(dt.nimh$ddate2) <- 2025
+
+date_w_start <- floor_date(Sys.Date(), 'week', week_start = 1) %m-% weeks(1)
+week_dates <- c(date_w_start, Sys.Date() + 1) |> as.POSIXct()
+
+dt.nimh.w <- dt.nimh[year(ddate2) %in% c(2005:2025), 
+                     .(tavg = median(TEMP, na.rm=T),
+                       tmax = max(TEMP, na.rm=T),
+                       tmin = min(TEMP, na.rm=T)), 
+                     by = .(STATION_ID, STATION_NAME, ddate2)] |> 
+    setkey(STATION_ID, STATION_NAME, ddate2) |> 
+    _[ddate2 %between% week_dates]
+
+
+ggplot() +
+    geom_hline(yintercept = 0)+
+    geom_ribbon(mapping = aes(x = ddate2, ymax = tmax, ymin = tmin, fill = 'range\n2005-2024'), 
+                data = dt.nimh.w[STATION_ID == '15614'], alpha = 0.4)+
+    geom_line(mapping = aes(x=ddate2, y = tavg, color = 'median\n2005-2024'), 
+              data = dt.nimh.w[STATION_ID == '15614'], linewidth  = 0.8) +
+    geom_line(mapping = aes(x = ddate2, y = TEMP, color = '2024'), 
+              data = dt.nimh[year(ddate) == 2024 & STATION_ID == '15614' & ddate2 %between% week_dates], 
+              linewidth = 0.8)+
+    geom_line(mapping = aes(x = ddate2, y = TEMP, color = '2025'), 
+              data = dt.nimh[year(ddate) == 2025 & STATION_ID == '15614' & ddate2 %between% week_dates], 
+              linewidth = 0.8)+
+    scale_y_continuous(sec.axis = dup_axis(), breaks = scales::pretty_breaks(10))+
+    scale_x_datetime(date_breaks = '1 day', expand = expansion(0), minor_breaks = NULL,
+                 labels = scales::label_date_short())+
+    scale_color_manual(values = colors, name = '')+
+    facet_grid(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ',max(dt.nimh$ddate)), scales = 'free_y')+
+    theme(axis.text = element_text(colour = 'black'),
+          axis.title = element_blank(),
+          legend.title = element_blank())
+
+ggsave('figs/nimh_temp_2025w.pdf', width = 12, height = 6, device = cairo_pdf)
