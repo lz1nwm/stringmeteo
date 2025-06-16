@@ -1,6 +1,7 @@
 library(data.table)
 library(ggplot2)
 library(scales)
+library(lubridate)
 library(openxlsx2)
 
 load('RData/bg_nimh.RData')
@@ -17,7 +18,7 @@ load('RData/bg_nimh.RData')
 #     facet_wrap(STATION_ID ~ ., scales = 'free_y')
 
 
-dt.nimh.d <- dt.nimh[year(ddate) %in% c(2005:2025), 
+dt.nimh.d <- dt.nimh[year(ddate) %in% c(2005:2024), 
                      .(tavg = median(TEMP, na.rm=T),
                        tmax = max(TEMP, na.rm=T),
                        tmin = min(TEMP, na.rm=T)), 
@@ -69,7 +70,7 @@ year(dt.nimh$ddate2) <- 2025
 date_w_start <- floor_date(Sys.Date(), 'week', week_start = 1) %m-% weeks(1)
 week_dates <- c(date_w_start, Sys.Date() + 1) |> as.POSIXct()
 
-dt.nimh.w <- dt.nimh[year(ddate2) %in% c(2005:2025), 
+dt.nimh.w <- dt.nimh[year(ddate) %in% c(2005:2024), 
                      .(tavg = median(TEMP, na.rm=T),
                        tmax = max(TEMP, na.rm=T),
                        tmin = min(TEMP, na.rm=T)), 
