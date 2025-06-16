@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: "30 00 * * *"
+    - cron: "0 10,22 * * *"
   workflow_dispatch:
 
 permissions:
