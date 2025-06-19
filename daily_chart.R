@@ -49,7 +49,7 @@ ggplot() +
     geom_line(mapping = aes(x = ddate_last |> as.Date(), y = tavg, color = '2024'), 
               data = dt.nimh.s[year(ddate) == 2024 & STATION_ID == '15614'], , linewidth = 0.8)+
     geom_line(mapping = aes(x = ddate |> as.Date(), y = tavg, color = '2025'), 
-              data = dt.nimh.s[year(ddate) == 2025 & STATION_ID == '15614'], , linewidth = 0.8)+
+              data = dt.nimh.s[year(ddate) == 2025 & STATION_ID == '15614' & ddate != Sys.Date()], , linewidth = 0.8)+
     scale_y_continuous(sec.axis = dup_axis(), breaks = scales::pretty_breaks(10))+
     scale_x_date(date_breaks = '1 month', expand = expansion(0),
                  labels = scales::label_date_short())+
