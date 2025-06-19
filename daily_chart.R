@@ -54,7 +54,7 @@ ggplot() +
     scale_x_date(date_breaks = '1 month', expand = expansion(0),
                  labels = scales::label_date_short())+
     scale_color_manual(values = colors, name = '')+
-    facet_grid(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ',max(dt.nimh.s$ddate)), scales = 'free_y')+
+    facet_grid(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ', max(dt.nimh.s$ddate) - 1), scales = 'free_y')+
     theme(axis.text = element_text(colour = 'black'),
           axis.title = element_blank(),
           legend.title = element_blank())
