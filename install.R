@@ -3,7 +3,9 @@
 
 # Add lines here for installing packages:
 
-install.packages("data.table", "ggplot2", "scales", "lubridate", "openxlsx2")
+install.packages(
+    c("data.table", "ggplot2", "scales", "lubridate", "openxlsx2")
+)
 
 # For example:
 # install.packages("wingen")
