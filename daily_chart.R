@@ -127,4 +127,4 @@ ggplot(dt.nimh.w[STATION_ID %in% stations & ddate2 %between% week_dates]) +
           legend.title = element_blank(),
           legend.position = 'bottom')
 
-ggsave('figs/nimh_temp_2025w.pdf', width = 12, height = 6*7, device = cairo_pdf)
+ggsave('figs/nimh_temp_2025w.pdf', width = 12, height = 6*4, device = cairo_pdf)
