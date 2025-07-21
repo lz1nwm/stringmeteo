@@ -34,6 +34,7 @@ jobs:
             any::lubridate
             any::data.table
             any::R.utils
+            any::lemon
       
       - name: Check out repository
         uses: actions/checkout@v4
