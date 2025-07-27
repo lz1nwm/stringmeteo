@@ -63,13 +63,13 @@ ggplot(data = dt.nimh.s[STATION_ID %in% stations]) +
               data = dt.nimh.s[year(ddate) == 2024 & STATION_ID %in% stations], 
               linewidth = 0.6)+
     geom_line(mapping = aes(x = ddate |> as.Date(), y = tavg, color = '2025'), 
-              data = dt.nimh.s[year(ddate) == 2025 & STATION_ID %in% stations & ddate != Sys.Date()], 
+              data = dt.nimh.s[year(ddate) == 2025 & STATION_ID %in% stations & ddate], 
               linewidth = 0.6)+
     scale_y_continuous(sec.axis = dup_axis(), breaks = scales::pretty_breaks(10))+
     scale_x_date(date_breaks = '1 month', expand = expansion(0),
                  labels = scales::label_date_short())+
     scale_color_manual(values = colors, name = '')+
-    facet_rep_wrap(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ', max(dt.nimh.s[ddate != Sys.Date(), ddate])), 
+    facet_rep_wrap(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ', max(dt.nimh.s[, ddate])), 
                scales = 'free_y',
                repeat.tick.labels = T,
                ncol = 2)+
