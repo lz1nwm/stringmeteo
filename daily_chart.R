@@ -18,6 +18,7 @@ load('RData/bg_nimh.RData')
 #     coord_cartesian(ylim = c(0, 5))+
 #     facet_wrap(STATION_ID ~ ., scales = 'free_y')
 
+dt.nimh[, OBS := .N, by = .(STATION_ID, ddate |> as.Date())]
 
 dt.nimh.d <- dt.nimh[year(ddate) %in% c(2005:2024), 
                      .(tavg_hist = median(TEMP, na.rm=T),
@@ -30,14 +31,24 @@ dt.nimh.d <- dt.nimh[year(ddate) %in% c(2005:2024),
     _[, ddate_last := as.Date(paste(2025, M, D, sep = '-'))] |>
     setkey(STATION_ID, M, D)
 
+include_today <- dt.nimh[as.Date(ddate) == Sys.Date(), any(OBS == 8)]
 
-
-dt.nimh.s <- dt.nimh[year(ddate)>=year(Sys.Date())-1, .(tavg = median(TEMP, na.rm=T)),
+if(include_today){
+    dt.nimh.s <- dt.nimh[year(ddate)>=year(Sys.Date())-1, .(tavg = median(TEMP, na.rm=T)),
                          #max = max(TEMP_MAX, na.rm=T),
                          #min = min(TEMP_MIN, na.rm=T)), 
                      by = .(STATION_ID, STATION_NAME, ddate = as.Date(ddate))] |> 
     _[, ddate_last := as.Date(paste(year(Sys.Date()), month(ddate), mday(ddate), sep = '-'))] |>
     setkey(STATION_ID, STATION_NAME, ddate)
+}else{
+    dt.nimh.s <- dt.nimh[year(ddate)>=year(Sys.Date())-1 & as.Date(ddate) != Sys.Date(), .(tavg = median(TEMP, na.rm=T)),
+                         #max = max(TEMP_MAX, na.rm=T),
+                         #min = min(TEMP_MIN, na.rm=T)), 
+                         by = .(STATION_ID, STATION_NAME, ddate = as.Date(ddate))] |> 
+        _[, ddate_last := as.Date(paste(year(Sys.Date()), month(ddate), mday(ddate), sep = '-'))] |>
+        setkey(STATION_ID, STATION_NAME, ddate)
+}
+
 
 dt.nimh.s <- merge(dt.nimh.s, dt.nimh.d, by = c('STATION_ID', 'ddate_last'), all.x = TRUE) 
 
@@ -53,6 +64,10 @@ dt.nimh.s[, STATION_ID := factor(STATION_ID, levels = c(15614,15712,15552,15655,
     setkey(ddate_last, STATION_ID)
 
 stations <- sts$STATION_ID[sts$STATION_ID != 15600]
+
+
+dt.nimh[ddate>='2025-07-30' & STATION_ID == '15615']
+
 ggplot(data = dt.nimh.s[STATION_ID %in% stations]) +
     geom_hline(yintercept = 0)+
     geom_ribbon(mapping = aes(x = ddate_last, ymax = tmax_hist, ymin = tmin_hist, fill = 'range\n2005-2024'), 
@@ -63,7 +78,7 @@ ggplot(data = dt.nimh.s[STATION_ID %in% stations]) +
               data = dt.nimh.s[year(ddate) == 2024 & STATION_ID %in% stations], 
               linewidth = 0.6)+
     geom_line(mapping = aes(x = ddate |> as.Date(), y = tavg, color = '2025'), 
-              data = dt.nimh.s[year(ddate) == 2025 & STATION_ID %in% stations & ddate], 
+              data = dt.nimh.s[year(ddate) == 2025 & STATION_ID %in% stations], 
               linewidth = 0.6)+
     scale_y_continuous(sec.axis = dup_axis(), breaks = scales::pretty_breaks(10))+
     scale_x_date(date_breaks = '1 month', expand = expansion(0),
@@ -129,3 +144,4 @@ ggplot(dt.nimh.w[STATION_ID %in% stations & ddate2 %between% week_dates]) +
           legend.position = 'bottom')
 
 ggsave('figs/nimh_temp_2025w.pdf', width = 12, height = 6*4, device = cairo_pdf)
+
