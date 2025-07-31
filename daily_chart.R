@@ -66,8 +66,6 @@ dt.nimh.s[, STATION_ID := factor(STATION_ID, levels = c(15614,15712,15552,15655,
 stations <- sts$STATION_ID[sts$STATION_ID != 15600]
 
 
-dt.nimh[ddate>='2025-07-30' & STATION_ID == '15615']
-
 ggplot(data = dt.nimh.s[STATION_ID %in% stations]) +
     geom_hline(yintercept = 0)+
     geom_ribbon(mapping = aes(x = ddate_last, ymax = tmax_hist, ymin = tmin_hist, fill = 'range\n2005-2024'), 
