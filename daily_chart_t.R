@@ -3,7 +3,7 @@ library(ggplot2)
 library(scales)
 library(lubridate)
 library(openxlsx2)
-library(lemon)
+library(ggh4x)
 
 load('RData/bg_nimh.RData')
 
@@ -82,9 +82,9 @@ ggplot(data = dt.nimh.s[STATION_ID %in% stations]) +
     scale_x_date(date_breaks = '1 month', expand = expansion(0),
                  labels = scales::label_date_short())+
     scale_color_manual(values = colors, name = '')+
-    facet_rep_wrap(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ', max(dt.nimh.s[, ddate])), 
+    facet_wrap2(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ', max(dt.nimh.s[, ddate])), 
                scales = 'free_y',
-               repeat.tick.labels = T,
+               #repeat.tick.labels = T,
                ncol = 2)+
     theme(axis.text = element_text(colour = 'black'),
           axis.title = element_blank(),
@@ -132,9 +132,9 @@ ggplot(dt.nimh.w[STATION_ID %in% stations & ddate2 %between% week_dates]) +
                  labels = scales::label_date_short())+
     scale_color_manual(values = colors, name = '')+
     #facet_wrap(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ',max(dt.nimh$ddate)), scales = 'free_y')+
-    facet_rep_wrap(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ', max(dt.nimh$ddate)), 
+    facet_wrap2(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ', max(dt.nimh$ddate)), 
                           scales = 'free_y',
-                          repeat.tick.labels = T,
+                          #repeat.tick.labels = T,
                           ncol = 2)+
     theme(axis.text = element_text(colour = 'black'),
           axis.title = element_blank(),
