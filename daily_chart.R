@@ -118,7 +118,7 @@ ggplot(data = dt.nimh.s[STATION_ID %in% stations]) +
                  labels = scales::label_date_short())+
     scale_color_manual(values = colors, name = '')+
     facet_wrap2(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ', max(dt.nimh.s[, ddate])), 
-                   scales = 'free_y',
+                   scales = 'free_y', axes = 'x',
                    #repeat.tick.labels = T,
                    ncol = 2)+
     theme(axis.text = element_text(colour = 'black'),
@@ -146,7 +146,7 @@ ggplot(data = dt.nimh.s[STATION_ID %in% stations]) +
                  labels = scales::label_date_short())+
     scale_color_manual(values = colors, name = '')+
     facet_wrap2(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ', max(dt.nimh.s[, ddate])), 
-                   scales = 'free_y',
+                   scales = 'free_y', axes = 'x',
                    #repeat.tick.labels = T,
                    ncol = 2)+
     theme(axis.text = element_text(colour = 'black'),
@@ -196,7 +196,7 @@ ggplot(dt.nimh.w[STATION_ID %in% stations & ddate2 %between% week_dates]) +
     scale_color_manual(values = colors, name = '')+
     #facet_wrap(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ',max(dt.nimh$ddate)), scales = 'free_y')+
     facet_wrap2(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ', max(dt.nimh$ddate)), 
-                   scales = 'free_y',
+                   scales = 'free_y',axes = 'x',
                    #repeat.tick.labels = T,
                    ncol = 2)+
     theme(axis.text = element_text(colour = 'black'),
