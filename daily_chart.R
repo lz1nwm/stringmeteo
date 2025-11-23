@@ -46,9 +46,6 @@ dt.nimh.dr <- dt.nimh[!is.na(RAIN_24)] |>
     _[, ddate_last := as.Date(paste(2025, M, D, sep = '-'))] |>
     setkey(STATION_ID, M, D)
 
-dt.nimh.rain[STATION_ID == 15614]
-
-
 include_today <- dt.nimh[as.Date(ddate) == Sys.Date(), any(OBS == 8)]
 
 if(include_today){
