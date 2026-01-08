@@ -156,7 +156,7 @@ ggplot(data = dt.nimh.s[STATION_ID %in% stations]) +
           legend.position = 'bottom')
 
 
-ggsave('figs/nimh_rain_2025.pdf', width = 12, height = 6*4, device = cairo_pdf)
+ggsave('figs/nimh_rain_2026.pdf', width = 12, height = 6*4, device = cairo_pdf)
 
 
 # Weekly

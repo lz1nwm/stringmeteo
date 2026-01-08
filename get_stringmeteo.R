@@ -99,8 +99,22 @@ for(cty in st[, station_id]){
         if( !(paste(cty,i) %in% names(list_dt)) ){
             
             params <- paste0('year=',yr,'&month=',m,'&day=',d,'&city=',cty,'&int=31')
-            dt <- read_html(paste0(base_url,params)) %>%
-                html_element("table") %>% html_table()
+            # dt <- read_html(paste0(base_url,params)) |> 
+            #     html_element("table") %>% html_table()
+            
+            url <- paste0(base_url,params)
+            
+            h <- handle(url)
+            
+            r1 <- GET(url, handle = h)  # first request sets cookies
+            Sys.sleep(1.2)
+            r2 <- GET(url, handle = h)  # second request sends cookies
+            
+            page <- read_html(content(r2, "text", encoding = "UTF-8"))
+            
+            table_node <- page %>% html_element("table")
+            
+            dt <- html_table(table_node)
             
             list_dt[[paste(cty,i)]] <- dt |> 
                 setDT() |> 
