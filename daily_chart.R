@@ -130,17 +130,17 @@ ggplot(data = dt.nimh.s[STATION_ID %in% stations & ddate_last <= chart_end]) +
 
 ggsave('figs/nimh_temp_2026.pdf', width = 12, height = 6*4, device = cairo_pdf)
 
-ggplot(data = dt.nimh.s[STATION_ID %in% stations]) +
+ggplot(data = dt.nimh.s[STATION_ID %in% stations & ddate_last <= chart_end]) +
     geom_hline(yintercept = 0)+
     geom_ribbon(mapping = aes(x = ddate_last, ymax = rmax_hist, ymin = rmin_hist, fill = 'range\n2005-2025'),
                 alpha = 0.4)+
     geom_line(mapping = aes(x=ddate_last, y = ravg_hist, color = 'median\n2005-2025'),
               linewidth  = 0.6)+
     geom_line(mapping = aes(x = ddate_last |> as.Date(), y = rsum, color = '2025'),
-              data = dt.nimh.s[year(ddate) == 2025 & STATION_ID %in% stations],
+              data = dt.nimh.s[year(ddate) == 2025 & STATION_ID %in% stations & ddate_last <= chart_end],
               linewidth = 0.6)+
     geom_line(mapping = aes(x = ddate |> as.Date(), y = rsum, color = '2026'), 
-              data = dt.nimh.s[year(ddate) == 2026 & STATION_ID %in% stations], 
+              data = dt.nimh.s[year(ddate) == 2026 & STATION_ID %in% stations & ddate_last <= chart_end], 
               linewidth = 0.6)+
     scale_y_continuous(sec.axis = dup_axis(), breaks = scales::pretty_breaks(10))+
     scale_x_date(date_breaks = '1 month', expand = expansion(0),
@@ -168,7 +168,7 @@ year(dt.nimh$ddate2) <- year(Sys.Date())
 date_w_start <- Sys.Date() %m-% days(6)
 week_dates <- c(date_w_start, Sys.Date() + 1) |> as.POSIXct()
 
-dt.nimh.w <- dt.nimh[year(ddate) %in% c(2005:2024), 
+dt.nimh.w <- dt.nimh[year(ddate) %in% c(2005:2025), 
                      .(tavg_hist = median(TEMP, na.rm=T),
                        tmax_hist = max(TEMP, na.rm=T),
                        tmin_hist = min(TEMP, na.rm=T)), 
@@ -181,15 +181,15 @@ dt.nimh.w <- merge(dt.nimh[year(ddate) >= year(Sys.Date())-1], dt.nimh.w[,.(STAT
 
 ggplot(dt.nimh.w[STATION_ID %in% stations & ddate2 %between% week_dates]) +
     geom_hline(yintercept = 0)+
-    geom_ribbon(mapping = aes(x = ddate2, ymax = tmax_hist, ymin = tmin_hist, fill = 'range\n2005-2024'), 
+    geom_ribbon(mapping = aes(x = ddate2, ymax = tmax_hist, ymin = tmin_hist, fill = 'range\n2005-2025'), 
                 alpha = 0.4)+
-    geom_line(mapping = aes(x=ddate2, y = tavg_hist, color = 'median\n2005-2024'), 
+    geom_line(mapping = aes(x=ddate2, y = tavg_hist, color = 'median\n2005-2025'), 
               linewidth  = 0.6) +
-    geom_line(mapping = aes(x = ddate2, y = TEMP, color = '2024'), 
-              data = dt.nimh.w[year(ddate) == 2024 & STATION_ID %in%  stations & ddate2 %between% week_dates], 
-              linewidth = 0.6)+
     geom_line(mapping = aes(x = ddate2, y = TEMP, color = '2025'), 
               data = dt.nimh.w[year(ddate) == 2025 & STATION_ID %in%  stations & ddate2 %between% week_dates], 
+              linewidth = 0.6)+
+    geom_line(mapping = aes(x = ddate2, y = TEMP, color = '2026'), 
+              data = dt.nimh.w[year(ddate) == 2026 & STATION_ID %in%  stations & ddate2 %between% week_dates], 
               linewidth = 0.6)+
     scale_y_continuous(sec.axis = dup_axis(), breaks = scales::pretty_breaks(10))+
     scale_x_datetime(date_breaks = '1 day', expand = expansion(0), minor_breaks = NULL,
@@ -205,5 +205,5 @@ ggplot(dt.nimh.w[STATION_ID %in% stations & ddate2 %between% week_dates]) +
           legend.title = element_blank(),
           legend.position = 'bottom')
 
-ggsave('figs/nimh_temp_2025w.pdf', width = 12, height = 6*4, device = cairo_pdf)
+ggsave('figs/nimh_temp_2026w.pdf', width = 12, height = 6*4, device = cairo_pdf)
 
