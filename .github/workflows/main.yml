@@ -35,6 +35,7 @@ jobs:
             any::data.table
             any::R.utils
             any::ggh4x
+            any::httr
       
       - name: Check out repository
         uses: actions/checkout@v4
