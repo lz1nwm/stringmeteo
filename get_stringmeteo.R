@@ -5,6 +5,7 @@ library(data.table)
 #library(openxlsx2)
 library(stringr)
 library(lubridate)
+library(httr)
 
 add_new_dt <- function(dt.old, dt.new){
     
