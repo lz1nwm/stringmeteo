@@ -100,7 +100,7 @@ dt.nimh.s[, STATION_ID := factor(STATION_ID, levels = c(15614,15712,15552,15655,
 
 stations <- sts$STATION_ID[sts$STATION_ID != 15600]
 
-chart_end <- '2026-04-30'
+chart_end <- '2026-06-30'
 
 ggplot(data = dt.nimh.s[STATION_ID %in% stations & ddate_last <= chart_end]) +
     geom_hline(yintercept = 0)+
