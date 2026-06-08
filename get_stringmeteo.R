@@ -142,7 +142,7 @@ time.taken
 dt.nimh.n <- rbindlist(list_dt, use.names = T)
 dt.nimh.n <- clean_data(dt.nimh.n)
 
-dt.nimh <- readRDS(file = './RData/bg_nimh.RData')
+dt.nimh <- readRDS(file = './RData/bg_nimh.rds')
 
 nrow(dt.nimh)
 max(dt.nimh$ddate)
