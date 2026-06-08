@@ -2,12 +2,12 @@ name: docker-build
 
 on:
   push:
-    paths:
-      - Dockerfile
-      - .github/workflows/docker-image.yml
-      - install.R
     branches: ["main"]
     tags: ["v*.*.*"]
+    paths:
+      - .devcontainer/Dockerfile
+      - .devcontainer/install.R
+      - .github/workflows/docker-image.yml
   workflow_dispatch:
 
 concurrency:
@@ -20,7 +20,9 @@ permissions:
 
 jobs:
   build:
+    name: Build and publish image
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
       - name: Check out repository
@@ -51,12 +53,15 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha,format=short
+          labels: |
+            org.opencontainers.image.title=stringmeteo
+            org.opencontainers.image.description=Get stringmeteo data.
 
       - name: Build and publish Docker image
         uses: docker/build-push-action@v7
         with:
-          context: .
-          file: ./Dockerfile
+          context: .devcontainer
+          file: .devcontainer/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

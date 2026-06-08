@@ -1,13 +1,17 @@
-#!/usr/local/bin/Rscript
+#!/usr/bin/env Rscript
 
-# Set repository mirror explicitly matched to R 4.6 on Ubuntu
-options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/latest"))
+# Use Posit Package Manager binaries for Ubuntu Noble.
+# The rocker/r-ver:4.6.0 image also sets a CRAN/P3M mirror, but this keeps
+# the repository explicit and aligned with Ubuntu 24.04 Noble.
+options(repos = c(
+    CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/latest"
+))
 
 required_packages <- c(
-    "data.table", 
-    "ggplot2", 
-    "scales", 
-    "lubridate", 
+    "data.table",
+    "ggplot2",
+    "scales",
+    "lubridate",
     "openxlsx2",
     "lemon",
     "httr",
@@ -18,13 +22,22 @@ required_packages <- c(
 )
 
 install.packages(
-    pkgs = required_packages, 
-    Ncpus = max(1L, parallel::detectCores() - 1L), 
-    dependencies = c("Depends", "Imports", "LinkingTo"),
+    pkgs = required_packages,
+    Ncpus = max(1L, parallel::detectCores() - 1L),
+    dependencies = c("Depends", "Imports", "LinkingTo")
 )
 
-# Verification check
-missing <- required_packages[!required_packages %in% installed.packages()[, "Package"]]
+installed <- rownames(installed.packages())
+missing <- setdiff(required_packages, installed)
+
 if (length(missing) > 0) {
-    stop(paste("CRITICAL ERROR: Packages failed:", paste(missing, collapse = ", ")))
+    stop(
+        paste(
+            "CRITICAL ERROR: Packages failed:",
+            paste(missing, collapse = ", ")
+        )
+    )
 }
+
+cat("Installed packages successfully:\n")
+cat(paste(required_packages, collapse = ", "), "\n")

@@ -3,6 +3,7 @@ name: Weather update
 on:
   schedule:
     - cron: "0 10,22 * * *"
+      timezone: "Europe/Sofia"
   workflow_dispatch:
 
 concurrency:
@@ -35,33 +36,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Retrieve data
+      - name: Retrieve data and render chart
         uses: nick-fields/retry@v4
         with:
-          timeout_minutes: 4
+          timeout_minutes: 8
           max_attempts: 3
           retry_wait_seconds: 20
-          command: >
-            docker run --rm
-            --user "$(id -u):$(id -g)"
-            -v "$PWD:/work"
-            -w /work
-            ${{ steps.image.outputs.name }}
-            Rscript get_stringmeteo.R
-
-      - name: Daily chart
-        uses: nick-fields/retry@v4
-        with:
-          timeout_minutes: 4
-          max_attempts: 2
-          retry_wait_seconds: 20
-          command: >
-            docker run --rm
-            --user "$(id -u):$(id -g)"
-            -v "$PWD:/work"
-            -w /work
-            ${{ steps.image.outputs.name }}
-            Rscript daily_chart.R
+          command: |
+            docker run --rm \
+              --user "$(id -u):$(id -g)" \
+              -v "$PWD:/work" \
+              -w /work \
+              ${{ steps.image.outputs.name }} \
+              bash -lc 'Rscript get_stringmeteo.R && Rscript daily_chart.R'
 
       - name: Commit new data
         uses: stefanzweifel/git-auto-commit-action@v7
