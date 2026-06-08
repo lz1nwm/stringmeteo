@@ -5,7 +5,7 @@ library(lubridate)
 library(openxlsx2)
 library(ggh4x)
 
-load('RData/bg_nimh.RData')
+dt.nimh <- readRDS(file = './RData/bg_nimh.rds')
 
 # dt.nimh[TEMP_MIN <= -50, TEMP_MIN := NA_real_]
 # dt.nimh[TEMP_MAX >= 50, TEMP_MAX := NA_real_]
@@ -100,7 +100,7 @@ dt.nimh.s[, STATION_ID := factor(STATION_ID, levels = c(15614,15712,15552,15655,
 
 stations <- sts$STATION_ID[sts$STATION_ID != 15600]
 
-chart_end <- '2026-06-30'
+chart_end <- '2026-09-30'
 
 ggplot(data = dt.nimh.s[STATION_ID %in% stations & ddate_last <= chart_end]) +
     geom_hline(yintercept = 0)+

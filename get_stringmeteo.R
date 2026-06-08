@@ -62,8 +62,9 @@ Sys.setlocale("LC_CTYPE", "Bulgarian.utf8")
 
 base_url <- 'https://www.stringmeteo.com/synop/bg_stday.php?'
 
-load(file = './RData/bg_nimh.RData')
-load(file = './RData/bg_stations.RData')
+dt.nimh <- readRDS(file = './RData/bg_nimh.rds')
+st <- readRDS(file = './RData/bg_stations.rds')
+
 max(dt.nimh$ddate)
 
 #st <- wb_to_df('./RData/dict.xlsx') |> setDT()
@@ -141,7 +142,7 @@ time.taken
 dt.nimh.n <- rbindlist(list_dt, use.names = T)
 dt.nimh.n <- clean_data(dt.nimh.n)
 
-load(file = './RData/bg_nimh.RData')
+dt.nimh <- readRDS(file = './RData/bg_nimh.RData')
 
 nrow(dt.nimh)
 max(dt.nimh$ddate)
@@ -151,4 +152,4 @@ dt.nimh <- add_new_dt(dt.nimh, dt.nimh.n)
 nrow(dt.nimh)
 max(dt.nimh$ddate)
 
-save(dt.nimh, file = './RData/bg_nimh.RData')
+saveRDS(dt.nimh, file = './RData/bg_nimh.rds')

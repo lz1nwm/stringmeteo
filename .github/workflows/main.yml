@@ -1,65 +1,69 @@
+name: Weather update
+
 on:
   schedule:
     - cron: "0 10,22 * * *"
   workflow_dispatch:
 
+concurrency:
+  group: weather-update
+  cancel-in-progress: true
+
 permissions:
   contents: write
-  
-name: Weather update
+  packages: read
 
 jobs:
   render:
     name: Update data
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    
+    timeout-minutes: 15
+
     steps:
-      - name: Set up R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          # use Posit's CRAN mirror with precompiled binaries
-          use-public-rspm: true
-          
-      - name: Install packages
-        uses: r-lib/actions/setup-r-dependencies@v2 # automatically sets up cache
-        with:
-          packages: |
-            any::ggplot2 
-            any::rvest
-            any::openxlsx2
-            any::lubridate
-            any::stringr
-            any::scales
-            any::lubridate
-            any::data.table
-            any::R.utils
-            any::ggh4x
-            any::httr
-      
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Compute image name
+        id: image
+        shell: bash
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}:latest" >> "$GITHUB_OUTPUT"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
         with:
-          fetch-depth: 0
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Retrieve data
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 4
+          max_attempts: 3
+          retry_wait_seconds: 20
+          command: >
+            docker run --rm
+            --user "$(id -u):$(id -g)"
+            -v "$PWD:/work"
+            -w /work
+            ${{ steps.image.outputs.name }}
+            Rscript get_stringmeteo.R
+
+      - name: Daily chart
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 4
           max_attempts: 2
-          command: Rscript -e 'source("get_stringmeteo.R")'
-          continue_on_error: true
-          
-      - name: Daily chart
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 4
-          max_attempts: 1
-          command: Rscript -e 'source("daily_chart.R")'
-          continue_on_error: true
+          retry_wait_seconds: 20
+          command: >
+            docker run --rm
+            --user "$(id -u):$(id -g)"
+            -v "$PWD:/work"
+            -w /work
+            ${{ steps.image.outputs.name }}
+            Rscript daily_chart.R
 
       - name: Commit new data
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: Update data
-          push_options: --force-with-lease
-        
+          commit_message: Update weather data
