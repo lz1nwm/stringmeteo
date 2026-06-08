@@ -2,12 +2,12 @@ name: docker-build
 
 on:
   push:
-    branches: ["main"]
-    tags: ["v*.*.*"]
     paths:
       - Dockerfile
       - .github/workflows/docker-image.yml
       - install.R
+    branches: ["main"]
+    tags: ["v*.*.*"]
   workflow_dispatch:
 
 concurrency:
@@ -23,6 +23,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
       - name: Compute image name
         id: image
         shell: bash
@@ -52,6 +55,8 @@ jobs:
       - name: Build and publish Docker image
         uses: docker/build-push-action@v7
         with:
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
