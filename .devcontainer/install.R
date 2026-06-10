@@ -1,13 +1,10 @@
 #!/usr/bin/env Rscript
-
-# Use Posit Package Manager binaries for Ubuntu Noble.
-# The rocker/r-ver:4.6.0 image also sets a CRAN/P3M mirror, but this keeps
-# the repository explicit and aligned with Ubuntu 24.04 Noble.
 options(repos = c(
     CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/latest"
 ))
 
 required_packages <- c(
+    "xml2",          # explicit — rvest depends on it
     "data.table",
     "ggplot2",
     "scales",
@@ -27,17 +24,26 @@ install.packages(
     dependencies = c("Depends", "Imports", "LinkingTo")
 )
 
+# Check 1: installed
 installed <- rownames(installed.packages())
 missing <- setdiff(required_packages, installed)
-
 if (length(missing) > 0) {
-    stop(
-        paste(
-            "CRITICAL ERROR: Packages failed:",
-            paste(missing, collapse = ", ")
-        )
-    )
+    stop("CRITICAL: Failed to install: ", paste(missing, collapse = ", "))
 }
 
-cat("Installed packages successfully:\n")
+# Check 2: loadable (catches broken shared libs, ICU mismatches, etc.)
+load_errors <- character()
+for (pkg in required_packages) {
+    tryCatch(
+        library(pkg, character.only = TRUE, quietly = TRUE),
+        error = function(e) {
+            load_errors <<- c(load_errors, sprintf("  %s -> %s", pkg, conditionMessage(e)))
+        }
+    )
+}
+if (length(load_errors) > 0) {
+    stop("CRITICAL: Installed but failed to load:\n", paste(load_errors, collapse = "\n"))
+}
+
+cat("All packages installed and loadable:\n")
 cat(paste(required_packages, collapse = ", "), "\n")
