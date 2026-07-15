@@ -39,16 +39,36 @@ jobs:
       - name: Retrieve data and render chart
         uses: nick-fields/retry@v4
         with:
-          timeout_minutes: 8
+          timeout_minutes: 12
           max_attempts: 3
           retry_wait_seconds: 20
           command: |
+            mkdir -p chromote-debug
+
             docker run --rm \
+              --shm-size=1g \
               --user "$(id -u):$(id -g)" \
+              -e HOME=/tmp/chrome-home \
+              -e XDG_CONFIG_HOME=/tmp/chrome-home/.config \
+              -e XDG_CACHE_HOME=/tmp/chrome-home/.cache \
+              -e XDG_DATA_HOME=/tmp/chrome-home/.local/share \
+              -e CHROME_USER_DATA_DIR=/tmp/chrome-home/profile \
+              -e STRINGMETEO_TIMEOUT=90 \
+              -e STRINGMETEO_OUTPUT_DIR=chromote-debug \
               -v "$PWD:/work" \
               -w /work \
-              ${{ steps.image.outputs.name }} \
-              bash -lc 'Rscript get_stringmeteo.R && Rscript daily_chart.R'
+              "${{ steps.image.outputs.name }}" \
+              sh -ec '
+                mkdir -p \
+                  "$HOME" \
+                  "$XDG_CONFIG_HOME" \
+                  "$XDG_CACHE_HOME" \
+                  "$XDG_DATA_HOME/applications" \
+                  "$CHROME_USER_DATA_DIR"
+
+                Rscript get_stringmeteo_actions.R
+                Rscript daily_chart.R
+              '
 
       - name: Commit new data
         uses: stefanzweifel/git-auto-commit-action@v7
