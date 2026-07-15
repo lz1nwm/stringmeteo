@@ -696,12 +696,12 @@ fetch_stringmeteo_table <- function(
     )
     
     # This matches the old script's html_element("table") behavior.
-    table_node <- html_element(
+    table_nodes <- html_elements(
         page,
         "table"
     )
     
-    if (inherits(table_node, "xml_missing")) {
+    if (length(table_nodes) == 0L) {
         
         save_failure_diagnostics(
             browser = browser,
@@ -711,13 +711,185 @@ fetch_stringmeteo_table <- function(
         )
         
         stop(
-            "The rendered page contained no first HTML table.",
+            "The rendered page contained no HTML tables.",
             call. = FALSE
         )
     }
     
-    # This returns the same kind of object that the old code assigned to `dt`.
-    dt <- html_table(table_node)
+    parsed_tables <- lapply(
+        seq_along(table_nodes),
+        function(index) {
+            
+            tryCatch(
+                html_table(
+                    table_nodes[[index]],
+                    fill = TRUE,
+                    trim = TRUE,
+                    convert = FALSE
+                ),
+                error = function(e) {
+                    
+                    message(
+                        "Could not parse HTML table ",
+                        index,
+                        ": ",
+                        conditionMessage(e)
+                    )
+                    
+                    NULL
+                }
+            )
+        }
+    )
+    
+    valid_indices <- which(
+        !vapply(
+            parsed_tables,
+            is.null,
+            logical(1)
+        )
+    )
+    
+    if (length(valid_indices) == 0L) {
+        
+        save_failure_diagnostics(
+            browser = browser,
+            station_id = station_id,
+            year = year,
+            month = month
+        )
+        
+        stop(
+            "HTML tables were found, but none could be parsed.",
+            call. = FALSE
+        )
+    }
+    
+    table_rows <- vapply(
+        parsed_tables[valid_indices],
+        nrow,
+        integer(1)
+    )
+    
+    table_columns <- vapply(
+        parsed_tables[valid_indices],
+        ncol,
+        integer(1)
+    )
+    
+    message(
+        "Parsed table dimensions: ",
+        paste0(
+            "#",
+            valid_indices,
+            "=",
+            table_rows,
+            "x",
+            table_columns,
+            collapse = ", "
+        )
+    )
+    
+    # The downstream StringMeteo processing expects at least 18 columns.
+    candidate_positions <- which(
+        table_columns >= 18L
+    )
+    
+    if (length(candidate_positions) == 0L) {
+        
+        save_failure_diagnostics(
+            browser = browser,
+            station_id = station_id,
+            year = year,
+            month = month
+        )
+        
+        stop(
+            paste0(
+                "No StringMeteo observations table was found. ",
+                "Parsed table column counts: ",
+                paste(table_columns, collapse = ", ")
+            ),
+            call. = FALSE
+        )
+    }
+    
+    candidate_indices <- valid_indices[
+        candidate_positions
+    ]
+    
+    # Score candidate tables using the same pattern used later by the
+    # original processing pipeline: the first column contains values
+    # such as a digit followed by "[".
+    matching_rows <- vapply(
+        candidate_indices,
+        function(index) {
+            
+            candidate <- parsed_tables[[index]]
+            
+            if (nrow(candidate) == 0L || ncol(candidate) == 0L) {
+                return(0L)
+            }
+            
+            sum(
+                grepl(
+                    "\\d\\[",
+                    as.character(candidate[[1]])
+                ),
+                na.rm = TRUE
+            )
+        },
+        integer(1)
+    )
+    
+    candidate_sizes <- vapply(
+        candidate_indices,
+        function(index) {
+            
+            candidate <- parsed_tables[[index]]
+            
+            nrow(candidate) * ncol(candidate)
+        },
+        integer(1)
+    )
+    
+    # Prefer the table with the most observation rows. Use total table size
+    # as a tie-breaker.
+    selection_order <- order(
+        matching_rows,
+        candidate_sizes,
+        decreasing = TRUE
+    )
+    
+    selected_index <- candidate_indices[
+        selection_order[[1]]
+    ]
+    
+    dt <- parsed_tables[[selected_index]]
+    
+    message(
+        "Selected table #",
+        selected_index,
+        ": ",
+        nrow(dt),
+        " rows x ",
+        ncol(dt),
+        " columns; matching observation rows: ",
+        matching_rows[selection_order[[1]]]
+    )
+    
+    if (ncol(dt) < 18L) {
+        stop(
+            "Selected table has fewer than 18 columns.",
+            call. = FALSE
+        )
+    }
+    
+    # Preserve the column convention expected by the unchanged old pipeline.
+    names(dt) <- paste0(
+        "X",
+        seq_len(ncol(dt))
+    )
     
     dt
 }
