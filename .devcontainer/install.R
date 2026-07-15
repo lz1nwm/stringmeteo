@@ -15,7 +15,8 @@ required_packages <- c(
     "rvest",
     "stringr",
     "R.utils",
-    "ggh4x"
+    "ggh4x",
+    "chromote"
 )
 
 install.packages(

@@ -1,0 +1,77 @@
+name: Test Chromote
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  test:
+    name: Test StringMeteo with Chromote
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Compute image name
+        id: image
+        shell: bash
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}:latest" >> "$GITHUB_OUTPUT"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull latest image
+        run: docker pull "${{ steps.image.outputs.name }}"
+
+      - name: Verify Chrome and Chromote
+        run: |
+          docker run --rm \
+            "${{ steps.image.outputs.name }}" \
+            bash -lc '
+              set -e
+
+              echo "Chrome executable:"
+              Rscript -e "cat(chromote::find_chrome(), \"\n\")"
+
+              echo "Chrome version:"
+              "$(Rscript -e "cat(chromote::find_chrome())")" --version
+
+              echo "Chromote version:"
+              Rscript -e "packageVersion(\"chromote\")"
+            '
+
+      - name: Run Chromote test
+        run: |
+          mkdir -p chromote-debug
+
+          docker run --rm \
+            --shm-size=1g \
+            --user "$(id -u):$(id -g)" \
+            -e STRINGMETEO_STATION=15614 \
+            -e STRINGMETEO_YEAR=2026 \
+            -e STRINGMETEO_MONTH=7 \
+            -e STRINGMETEO_DAY=1 \
+            -e STRINGMETEO_TIMEOUT=90 \
+            -e STRINGMETEO_OUTPUT_DIR=chromote-debug \
+            -v "$PWD:/work" \
+            -w /work \
+            "${{ steps.image.outputs.name }}" \
+            Rscript test_chromote.R
+
+      - name: Upload Chromote diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chromote-diagnostics
+          path: chromote-debug/
+          if-no-files-found: warn
+          retention-days: 7
