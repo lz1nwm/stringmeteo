@@ -104,19 +104,75 @@ for(cty in st[, station_id]){
             # dt <- read_html(paste0(base_url,params)) |> 
             #     html_element("table") %>% html_table()
             
-            url <- paste0(base_url,params)
+            url <- paste0(base_url, params)
             
-            h <- handle(url)
+            h <- handle("https://www.stringmeteo.com")
             
-            r1 <- GET(url, handle = h)  # first request sets cookies
-            Sys.sleep(1.2)
-            r2 <- GET(url, handle = h)  # second request sends cookies
+            request_config <- list(
+                user_agent(
+                    paste(
+                        "Mozilla/5.0 (X11; Linux x86_64)",
+                        "AppleWebKit/537.36 (KHTML, like Gecko)",
+                        "Chrome/126.0 Safari/537.36"
+                    )
+                ),
+                add_headers(
+                    Accept = paste(
+                        "text/html,application/xhtml+xml,application/xml;q=0.9,",
+                        "image/avif,image/webp,*/*;q=0.8"
+                    ),
+                    `Accept-Language` = "bg-BG,bg;q=0.9,en;q=0.8"
+                ),
+                timeout(30)
+            )
             
-            page <- read_html(content(r2, "text", encoding = "UTF-8"))
+            r1 <- GET(url, handle = h, config = request_config)
+            stop_for_status(r1)
             
-            table_node <- page %>% html_element("table")
+            Sys.sleep(2)
             
-            dt <- html_table(table_node)
+            r2 <- GET(url, handle = h, config = request_config)
+            stop_for_status(r2)
+            
+            html_text <- content(r2, "text", encoding = "UTF-8")
+            
+            message("HTTP status: ", status_code(r2))
+            message("Final URL: ", r2$url)
+            message("Content type: ", headers(r2)[["content-type"]])
+            
+            if (
+                grepl("/__superjs/challenge", r2$url, fixed = TRUE) ||
+                grepl("SuperJS check", html_text, fixed = TRUE)
+            ) {
+                stop(
+                    paste(
+                        "StringMeteo returned its JavaScript anti-bot challenge.",
+                        "httr/rvest cannot execute the challenge.",
+                        "Final URL:", r2$url
+                    )
+                )
+            }
+            
+            page <- read_html(html_text)
+            table_nodes <- html_elements(page, "table")
+            
+            if (length(table_nodes) == 0L) {
+                debug_file <- sprintf(
+                    "stringmeteo-response-%s-%04d-%02d.html",
+                    cty, yr, m
+                )
+                
+                writeLines(html_text, debug_file, useBytes = TRUE)
+                
+                stop(
+                    paste(
+                        "StringMeteo response contained no table.",
+                        "Response saved to:", debug_file
+                    )
+                )
+            }
+            
+            dt <- html_table(table_nodes[[1]])
             
             list_dt[[paste(cty,i)]] <- dt |> 
                 setDT() |> 
