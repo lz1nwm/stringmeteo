@@ -346,6 +346,45 @@ main <- function() {
     message("Chrome executable: ", chrome_path)
     message("Target URL:        ", url)
     
+    chrome_profile <- Sys.getenv(
+        "CHROME_USER_DATA_DIR",
+        unset = file.path(tempdir(), "chromote-profile")
+    )
+    
+    dir.create(
+        chrome_profile,
+        recursive = TRUE,
+        showWarnings = FALSE
+    )
+    
+    if (!dir.exists(chrome_profile)) {
+        stop(
+            "Could not create Chrome profile directory: ",
+            chrome_profile,
+            call. = FALSE
+        )
+    }
+    
+    if (file.access(chrome_profile, mode = 2) != 0) {
+        stop(
+            "Chrome profile directory is not writable: ",
+            chrome_profile,
+            call. = FALSE
+        )
+    }
+    
+    chrome_args <- unique(
+        c(
+            chromote::default_chrome_args(),
+            paste0("--user-data-dir=", chrome_profile)
+        )
+    )
+    
+    chromote::set_chrome_args(chrome_args)
+    
+    message("Chrome profile:    ", chrome_profile)
+    message("Chrome arguments:  ", paste(chrome_args, collapse = " "))
+    
     browser <- ChromoteSession$new(
         width = 1440,
         height = 1000

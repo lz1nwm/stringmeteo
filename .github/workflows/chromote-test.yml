@@ -49,13 +49,18 @@ jobs:
               Rscript -e "packageVersion(\"chromote\")"
             '
 
-      - name: Run Chromote test
+            - name: Run Chromote test
         run: |
           mkdir -p chromote-debug
 
           docker run --rm \
             --shm-size=1g \
             --user "$(id -u):$(id -g)" \
+            -e HOME=/tmp/chrome-home \
+            -e XDG_CONFIG_HOME=/tmp/chrome-home/.config \
+            -e XDG_CACHE_HOME=/tmp/chrome-home/.cache \
+            -e XDG_DATA_HOME=/tmp/chrome-home/.local/share \
+            -e CHROME_USER_DATA_DIR=/tmp/chrome-home/profile \
             -e STRINGMETEO_STATION=15614 \
             -e STRINGMETEO_YEAR=2026 \
             -e STRINGMETEO_MONTH=7 \
@@ -65,7 +70,20 @@ jobs:
             -v "$PWD:/work" \
             -w /work \
             "${{ steps.image.outputs.name }}" \
-            Rscript test_chromote.R
+            sh -ec '
+              mkdir -p \
+                "$HOME" \
+                "$XDG_CONFIG_HOME" \
+                "$XDG_CACHE_HOME" \
+                "$XDG_DATA_HOME/applications" \
+                "$CHROME_USER_DATA_DIR"
+
+              echo "Container UID: $(id -u)"
+              echo "HOME: $HOME"
+              echo "Chrome profile: $CHROME_USER_DATA_DIR"
+
+              exec Rscript test_chromote.R
+            '
 
       - name: Upload Chromote diagnostics
         if: always()
