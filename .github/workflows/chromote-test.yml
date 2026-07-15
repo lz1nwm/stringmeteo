@@ -46,10 +46,10 @@ jobs:
               "$(Rscript -e "cat(chromote::find_chrome())")" --version
 
               echo "Chromote version:"
-              Rscript -e "packageVersion(\"chromote\")"
+              Rscript -e "cat(as.character(packageVersion(\"chromote\")), \"\n\")"
             '
 
-            - name: Run Chromote test
+      - name: Run Chromote test
         run: |
           mkdir -p chromote-debug
 
