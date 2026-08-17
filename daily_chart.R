@@ -76,7 +76,7 @@ dt.nimh.s[, tavg_ano := tavg - tavg_hist]
 dt.nimh.s[
     , tavg_ano_7d := frollmean(
         tavg_ano,
-        n = 28,
+        n = 14,
         na.rm = TRUE,
         align = "right"
     ),
