@@ -69,6 +69,20 @@ if(include_today){
 dt.nimh.s <- merge(dt.nimh.s, dt.nimh.d, by = c('STATION_ID', 'ddate_last'), all.x = TRUE) 
 dt.nimh.s <- merge(dt.nimh.s, dt.nimh.dr[,-c('M','D')], by = c('STATION_ID', 'ddate_last'), all.x = TRUE) 
 
+setorder(dt.nimh.s, STATION_ID, STATION_NAME, ddate)
+
+dt.nimh.s[, tavg_ano := tavg - tavg_hist]
+
+dt.nimh.s[
+    , tavg_ano_7d := frollmean(
+        tavg_ano,
+        n = 28,
+        na.rm = TRUE,
+        align = "right"
+    ),
+    by = .(STATION_ID, STATION_NAME)
+]
+
 fill_zeros_locf_keep_leading <- function(x) {
     xn <- x
     i <- match(TRUE, xn != 0)   # index of first non-zero
@@ -207,3 +221,30 @@ ggplot(dt.nimh.w[STATION_ID %in% stations & ddate2 %between% week_dates]) +
 
 ggsave('figs/nimh_temp_2026w.pdf', width = 12, height = 6*4, device = cairo_pdf)
 
+
+ggplot(data = dt.nimh.s[STATION_ID %in% stations & ddate_last <= chart_end]) +
+    geom_hline(yintercept = 0)+
+    # geom_ribbon(mapping = aes(x = ddate_last, ymax = tavg_ano_max_7d, ymin = tavg_ano_min_7d, fill = 'range\n2005-2025'),
+    #             alpha = 0.4)+
+    # geom_line(mapping = aes(x=ddate_last, y = tavg_ano, color = 'median\n2005-2025'), 
+    #           linewidth  = 0.6)+
+    geom_line(mapping = aes(x = ddate_last |> as.Date(), y = tavg_ano_7d, color = '2025'), 
+              data = dt.nimh.s[year(ddate) == 2025 & STATION_ID %in% stations & ddate_last <= chart_end], 
+              linewidth = 0.6)+
+    geom_line(mapping = aes(x = ddate |> as.Date(), y = tavg_ano_7d, color = '2026'), 
+              data = dt.nimh.s[year(ddate) == 2026 & STATION_ID %in% stations & ddate_last <= chart_end], 
+              linewidth = 0.6)+
+    scale_y_continuous(sec.axis = dup_axis(), breaks = scales::pretty_breaks(10))+
+    scale_x_date(date_breaks = '1 month', expand = expansion(0),
+                 labels = scales::label_date_short())+
+    scale_color_manual(values = colors, name = '')+
+    facet_wrap2(. ~ paste0(STATION_NAME,' (',STATION_ID,'), ', max(dt.nimh.s[, ddate])), 
+                scales = 'free_y',
+                #repeat.tick.labels = T,
+                ncol = 2)+
+    theme(axis.text = element_text(colour = 'black'),
+          axis.title = element_blank(),
+          legend.title = element_blank(),
+          legend.position = 'bottom')
+
+ggsave('figs/nimh_temp_ano_2026.pdf', width = 12, height = 6*4, device = cairo_pdf)
