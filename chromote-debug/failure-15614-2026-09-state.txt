@@ -1,6 +1,6 @@
 List of 5
  $ url       : chr "https://www.stringmeteo.com/synop/bg_stday.php?year=2026&month=9&day=1&city=15614&int=31"
- $ title     : chr "Времето София » 01-02.09.2026"
+ $ title     : chr "Времето София » 01-06.09.2026"
  $ readyState: chr "interactive"
  $ tableCount: int 9
  $ bodyText  : chr "\nНавигация\n\nФактически\nданни\n\n\n[вход] [изход]\nНачало раздел\n\n\nВРЕМЕТО В БЪЛГАРИЯ:\nТаблица тек.\nТаб"| __truncated__
